@@ -245,7 +245,7 @@ in
       };
 
       script = let
-        secrets = [ "jicofo-component-secret" "jicofo-user-secret" ] ++ (optional (cfg.videobridge.passwordFile == null) "videobridge-secret");
+        secrets = [ "jicofo-component-secret" "jicofo-user-secret" "jibri-user-secret" "recorder-user-secret" ] ++ (optional (cfg.videobridge.passwordFile == null) "videobridge-secret");
         videobridgeSecret = if cfg.videobridge.passwordFile != null then cfg.videobridge.passwordFile else "/var/lib/jitsi-meet/videobridge-secret";
       in
       ''
