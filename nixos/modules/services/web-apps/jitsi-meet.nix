@@ -218,13 +218,13 @@ in
         enabled = true;
         domain = "recording.${cfg.hostName}";
         extraConfig = ''
+          modules_enabled = {"ping";}
           authentication = "internal_plain"
         '';
         ssl = {
           cert = "/var/lib/jitsi-meet/jitsi-meet.crt";
           key = "/var/lib/jitsi-meet/jitsi-meet.key";
         };
-        modules.ping = true;
       };
     };
     systemd.services.prosody.serviceConfig = mkIf cfg.prosody.enable {
