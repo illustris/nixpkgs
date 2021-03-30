@@ -27,6 +27,8 @@ stdenv.mkDerivation {
     mkdir -p $out/bin
     mv opt/jitsi/jibri/jibri.jar $out/bin/
     mv opt/jitsi/jibri/launch.sh $out/bin/jibri_launch
+    mv etc $out/etc
+    mv opt $out/opt
     runHook postInstall
   '';
 }
