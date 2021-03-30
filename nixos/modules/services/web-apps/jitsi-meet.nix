@@ -214,6 +214,18 @@ in
           key = "/var/lib/jitsi-meet/jitsi-meet.key";
         };
       };
+      virtualHosts."recording.${cfg.hostName}" = {
+        enabled = true;
+        domain = "recording.${cfg.hostName}";
+        extraConfig = ''
+          authentication = "internal_plain"
+        '';
+        ssl = {
+          cert = "/var/lib/jitsi-meet/jitsi-meet.crt";
+          key = "/var/lib/jitsi-meet/jitsi-meet.key";
+        };
+        modules.ping = true;
+      };
     };
     systemd.services.prosody.serviceConfig = mkIf cfg.prosody.enable {
       EnvironmentFile = [ "/var/lib/jitsi-meet/secrets-env" ];
