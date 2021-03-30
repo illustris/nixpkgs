@@ -266,6 +266,8 @@ in
       + optionalString cfg.prosody.enable ''
         ${config.services.prosody.package}/bin/prosodyctl register focus auth.${cfg.hostName} "$(cat /var/lib/jitsi-meet/jicofo-user-secret)"
         ${config.services.prosody.package}/bin/prosodyctl register jvb auth.${cfg.hostName} "$(cat ${videobridgeSecret})"
+        ${config.services.prosody.package}/bin/prosodyctl register jibri auth.${cfg.hostName} "$(cat /var/lib/jitsi-meet/jibri-user-secret)"
+        ${config.services.prosody.package}/bin/prosodyctl register recorder recording.${cfg.hostName} "$(cat /var/lib/jitsi-meet/recorder-user-secret)"
 
         # generate self-signed certificates
         if [ ! -f /var/lib/jitsi-meet.crt ]; then
