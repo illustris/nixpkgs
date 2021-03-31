@@ -53,7 +53,9 @@ in
 
     config = mkOption {
       type = attrs;
-      default = { };
+      default = {
+        hiddenDomain = "recording.${cfg.hostName}";
+      };
       example = literalExample ''
         {
           enableWelcomePage = false;
@@ -181,6 +183,15 @@ in
           extraConfig = ''
             storage = "memory"
             admins = { "focus@auth.${cfg.hostName}", "jvb@auth.${cfg.hostName}" }
+          '';
+          #-- muc_room_cache_size = 1000
+        }
+        {
+          domain = "internal.auth.${cfg.hostName}";
+          name = "Jitsi Meet internal auth MUC";
+          extraConfig = ''
+            storage = "memory"
+            modules_enabled = { "ping"; }
           '';
           #-- muc_room_cache_size = 1000
         }
@@ -339,6 +350,8 @@ in
       bridgeMuc = "jvbbrewery@internal.${cfg.hostName}";
       config = {
         "org.jitsi.jicofo.ALWAYS_TRUST_MODE_ENABLED" = "true";
+        "org.jitsi.jicofo.jibri.BREWERY"="JibriBrewery@internal.auth.meet.myfirewall.org";
+        "org.jitsi.jicofo.jibri.PENDING_TIMEOUT"="90";
       };
     };
   };
