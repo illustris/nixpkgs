@@ -55,6 +55,8 @@ in
       type = attrs;
       default = {
         hiddenDomain = "recording.${cfg.hostName}";
+        enableRecording = "true";
+        recordingType = "jibri_file";
       };
       example = literalExample ''
         {
@@ -350,7 +352,7 @@ in
       bridgeMuc = "jvbbrewery@internal.${cfg.hostName}";
       config = {
         "org.jitsi.jicofo.ALWAYS_TRUST_MODE_ENABLED" = "true";
-        "org.jitsi.jicofo.jibri.BREWERY"="JibriBrewery@internal.auth.meet.myfirewall.org";
+        "org.jitsi.jicofo.jibri.BREWERY"="JibriBrewery@internal.auth.${cfg.hostName}";
         "org.jitsi.jicofo.jibri.PENDING_TIMEOUT"="90";
       };
     };
