@@ -45,6 +45,14 @@
         # Prevent the firmware from smashing the framebuffer setup done by the mainline kernel
         # when attempting to show low-voltage or overtemperature warnings.
         avoid_warnings=1
+
+        max_framebuffer_height=1920
+        max_usb_current=1
+        config_hdmi_boost=10
+        hdmi_group=2
+        hdmi_force_hotplug=1
+        hdmi_mode=87
+        hdmi_timings=1080 1 26 4 50 1920 1 8 2 6 0 0 0 60 0 135580000 3
       '';
       in ''
         (cd ${pkgs.raspberrypifw}/share/raspberrypi/boot && cp bootcode.bin fixup*.dat start*.elf $NIX_BUILD_TOP/firmware/)
