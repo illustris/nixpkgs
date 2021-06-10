@@ -1,4 +1,4 @@
-{ lib, substituteAll, bash, coreutils, gnused, firmware ? raspberrypifw }:
+{ lib, substituteAll, bash, coreutils, gnused }:
 
 substituteAll {
   src = ./raspberrypi-builder.sh;
