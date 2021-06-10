@@ -1,9 +1,8 @@
-{ pkgs, firmware ? pkgs.raspberrypifw }:
+{ lib, substituteAll, bash, coreutils, gnused, firmware ? pkgs.raspberrypifw }:
 
-pkgs.substituteAll {
+substituteAll {
   src = ./raspberrypi-builder.sh;
   isExecutable = true;
-  inherit (pkgs) bash;
-  path = [pkgs.coreutils pkgs.gnused pkgs.gnugrep];
-  inherit firmware;
+  inherit bash firmware;
+  path = lib.makeBinPath [ coreutils gnused ];
 }
