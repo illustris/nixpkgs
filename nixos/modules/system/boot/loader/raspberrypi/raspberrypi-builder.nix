@@ -3,6 +3,6 @@
 substituteAll {
   src = ./raspberrypi-builder.sh;
   isExecutable = true;
-  inherit bash firmware;
+  inherit bash;
   path = lib.makeBinPath [ coreutils gnused ];
 }
