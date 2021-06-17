@@ -188,7 +188,7 @@ in
       extraModules = [ "pubsub" ];
       extraConfig = mkAfter ''
         Component "focus.${cfg.hostName}" "client_proxy"
-          target_address = "focusUser@auth.${cfg.hostName}"
+          target_address = "focus@auth.${cfg.hostName}"
       '';
       virtualHosts.${cfg.hostName} = {
         enabled = true;
@@ -254,6 +254,7 @@ in
       + optionalString cfg.prosody.enable ''
         ${config.services.prosody.package}/bin/prosodyctl register focus auth.${cfg.hostName} "$(cat /var/lib/jitsi-meet/jicofo-user-secret)"
         ${config.services.prosody.package}/bin/prosodyctl register jvb auth.${cfg.hostName} "$(cat ${videobridgeSecret})"
+        ${config.services.prosody.package}/bin/prosodyctl mod_roster_command subscribe focus.${cfg.hostName} @auth.${cfg.hostName}
 
         # generate self-signed certificates
         if [ ! -f /var/lib/jitsi-meet.crt ]; then
