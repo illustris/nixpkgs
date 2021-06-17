@@ -187,8 +187,8 @@ in
       ];
       extraModules = [ "pubsub" ];
       extraConfig = mkAfter ''
-        Component "focus.${cfg.hostName}"
-          component_secret = os.getenv("JICOFO_COMPONENT_SECRET")
+        Component "focus.${cfg.hostName}" "client_proxy"
+          target_address = "focusUser@auth.${cfg.hostName}"
       '';
       virtualHosts.${cfg.hostName} = {
         enabled = true;
