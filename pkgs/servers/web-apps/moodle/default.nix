@@ -33,6 +33,8 @@ in stdenv.mkDerivation rec {
           "mod"
         else if p.pluginType == "theme" then
           "theme"
+        else if p.pluginType == "filter" then
+          "filter"
         else if p.pluginType == "block" then
           "blocks"
         else if p.pluginType == "question" then
