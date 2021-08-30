@@ -44,7 +44,7 @@ in stdenv.mkDerivation rec {
         else if p.pluginType == "report" then
           "admin/report"
         else
-          throw "unknown moodle plugin type";
+          throw "unknown moodle plugin type!!!";
         # we have to copy it, because the plugins have refrences to .. inside
       in ''
         mkdir -p $out/share/moodle/${dir}/${p.name}
