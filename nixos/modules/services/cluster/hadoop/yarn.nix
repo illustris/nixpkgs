@@ -46,6 +46,17 @@ in
         '';
       };
     };
+    timelineserver = {
+      enable = mkEnableOption "Whether to run the Hadoop YARN timeline server";
+      inherit restartIfChanged;
+      openFirewall = mkOption {
+        type = types.bool;
+        default = true;
+        description = ''
+          Open firewall ports for timeline server
+        '';
+      };
+    };
   };
 
   config = mkMerge [
@@ -122,6 +133,27 @@ in
       networking.firewall.allowedTCPPortRanges = [
         (mkIf (cfg.yarn.nodemanager.openFirewall) {from = 1024; to = 65535;})
       ];
+    })
+
+    (mkIf cfg.yarn.timelineserver.enable {
+      systemd.services.yarn-timelineserver = {
+        description = "Hadoop YARN timeline server";
+        wantedBy = [ "multi-user.target" ];
+        inherit (cfg.yarn.timelineserver) restartIfChanged;
+
+        serviceConfig = {
+          User = "yarn";
+          SyslogIdentifier = "yarn-timelineserver";
+          ExecStart = "${cfg.package}/bin/yarn --config ${hadoopConf} " +
+                      " timelineserver";
+          Restart = "always";
+        };
+      };
+      networking.firewall.allowedTCPPorts = (mkIf cfg.yarn.timelineserver.openFirewall [
+        10200 # timeline-service.address
+        8188 # timeline-service.webapp.address
+        8190 # timeline-service.webapp.https.address
+      ]);
     })
 
   ];

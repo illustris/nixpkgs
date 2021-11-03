@@ -69,6 +69,7 @@ with lib;
         "yarn.nodemanager.log-dirs" = "/var/log/hadoop/yarn/nodemanager";
         "yarn.resourcemanager.bind-host" = "0.0.0.0";
         "yarn.resourcemanager.scheduler.class" = "org.apache.hadoop.yarn.server.resourcemanager.scheduler.fifo.FifoScheduler";
+        "yarn.timeline-service.bind-host" = "0.0.0.0";
       };
       type = types.attrsOf types.anything;
       example = literalExpression ''
