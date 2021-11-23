@@ -7,6 +7,7 @@ with lib;
   imports = [ ./yarn.nix ./hdfs.nix ];
 
   options.services.hadoop = {
+    gateway.enable = mkEnableOption "deployment of hadoop cluster configuration";
     coreSite = mkOption {
       default = {};
       type = types.attrsOf types.anything;
@@ -146,7 +147,8 @@ with lib;
 
 
   config = mkMerge [
-    (mkIf (builtins.hasAttr "yarn" config.users.users ||
+    (mkIf (cfg.gateway.enable ||
+           builtins.hasAttr "yarn" config.users.users ||
            builtins.hasAttr "hdfs" config.users.users ||
            builtins.hasAttr "httpfs" config.users.users) {
       users.groups.hadoop = {
