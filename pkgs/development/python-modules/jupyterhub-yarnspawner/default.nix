@@ -5,6 +5,7 @@
 , tornado
 , bash
 , skein
+, hadoop
 }:
 
 buildPythonPackage rec {
@@ -20,6 +21,7 @@ buildPythonPackage rec {
     jupyterhub
     tornado
     skein
+    hadoop
   ];
 
   #postPatch = ''
