@@ -4086,6 +4086,7 @@ in {
   jupyterhub-ldapauthenticator = callPackage ../development/python-modules/jupyterhub-ldapauthenticator { };
 
   jupyterhub-systemdspawner = callPackage ../development/python-modules/jupyterhub-systemdspawner { };
+  jupyterhub-yarnspawner = callPackage ../development/python-modules/jupyterhub-yarnspawner { };
 
   jupyterhub-tmpauthenticator = callPackage ../development/python-modules/jupyterhub-tmpauthenticator { };
 

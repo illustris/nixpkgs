@@ -77,11 +77,13 @@ in {
       default = pkgs.python3.withPackages (p: with p; [
         jupyterhub
         jupyterhub-systemdspawner
+        jupyterhub-yarnspawner
       ]);
       defaultText = literalExpression ''
         pkgs.python3.withPackages (p: with p; [
           jupyterhub
           jupyterhub-systemdspawner
+          jupyterhub-yarnspawner
         ])
       '';
       description = ''

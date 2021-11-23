@@ -38,7 +38,7 @@ stdenv.mkDerivation rec {
   outputHashMode = "recursive";
   outputHashAlgo = "sha256";
   outputHash = if stdenv.isLinux
-    then "12f0q3444qw6y4f6qsa9540a0fz4cgi844zzi8z1phqn3k4dnl6v"
+    then "1c0b47nm13nrb5np3mv2dpiwrrfs7cnb4jhg1jandj93jync8sqg"
     else "0bjbwiv17cary1isxca0m2hsvgs1i5fh18z247h1hky73lnhbrz8";
 
 } // lib.optionalAttrs stdenv.isLinux { dontAutoPatchelf = true; }
