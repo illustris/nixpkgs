@@ -193,7 +193,7 @@ in {
 
         serviceConfig = {
           Restart = "always";
-          ExecStart = "${cfg.jupyterhubEnv}/bin/jupyterhub --config ${jupyterhubConfig}";
+          ExecStart = "${cfg.jupyterhubEnv}/bin/jupyterhub --config ${jupyterhubConfig} --debug";
           User = "root";
           StateDirectory = cfg.stateDirectory;
           WorkingDirectory = "/var/lib/${cfg.stateDirectory}";
