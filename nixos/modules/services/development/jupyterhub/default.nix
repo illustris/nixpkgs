@@ -185,6 +185,11 @@ in {
 
   config = mkMerge [
     (mkIf cfg.enable  {
+      users.users.yarn = {
+        description = "Hadoop HTTPFS user";
+        group = "hadoop";
+        isSystemUser = true;
+      };
       systemd.services.jupyterhub = {
         description = "Jupyterhub development server";
 
@@ -194,7 +199,7 @@ in {
         serviceConfig = {
           Restart = "always";
           ExecStart = "${cfg.jupyterhubEnv}/bin/jupyterhub --config ${jupyterhubConfig} --debug";
-          User = "root";
+          User = "yarn";
           StateDirectory = cfg.stateDirectory;
           WorkingDirectory = "/var/lib/${cfg.stateDirectory}";
         };
