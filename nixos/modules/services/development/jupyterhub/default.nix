@@ -199,7 +199,8 @@ in {
         serviceConfig = {
           Restart = "always";
           ExecStart = "${cfg.jupyterhubEnv}/bin/jupyterhub --config ${jupyterhubConfig} --debug";
-          User = "yarn";
+          # PAN fails without root user
+          #User = "yarn";
           StateDirectory = cfg.stateDirectory;
           WorkingDirectory = "/var/lib/${cfg.stateDirectory}";
         };
