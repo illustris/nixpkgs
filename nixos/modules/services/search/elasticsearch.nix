@@ -69,6 +69,12 @@ in
       type = types.int;
     };
 
+    startTimeout = mkOption {
+      description = "Time to wait for start-up before considering the service to have failed.";
+      default = "infinity";
+      type = types.str;
+    };
+
     tcp_port = mkOption {
       description = "Elasticsearch port for the node to node communication.";
       default = 9300;
@@ -143,6 +149,17 @@ in
       example = lib.literalExpression "[ pkgs.elasticsearchPlugins.discovery-ec2 ]";
     };
 
+    restartIfChanged  = mkOption {
+      type = types.bool;
+      description = ''
+        Automatically restart the service on config change.
+        This can be set to false to defer restarts on a server or cluster.
+        Please consider the security implications of inadvertently running an older version,
+        and the possibility of unexpected behavior caused by inconsistent versions across a cluster when disabling this option.
+      '';
+      default = true;
+    };
+
   };
 
   ###### implementation
@@ -153,6 +170,7 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
       path = [ pkgs.inetutils ];
+      inherit (cfg) restartIfChanged;
       environment = {
         ES_HOME = cfg.dataDir;
         ES_JAVA_OPTS = toString cfg.extraJavaOptions;
@@ -163,6 +181,8 @@ in
         User = "elasticsearch";
         PermissionsStartOnly = true;
         LimitNOFILE = "1024000";
+        Restart = "always";
+        TimeoutStartSec = cfg.startTimeout;
       };
       preStart = ''
         ${optionalString (!config.boot.isContainer) ''
