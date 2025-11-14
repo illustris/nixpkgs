@@ -113,8 +113,8 @@ in
   };
   spark_3_5 = spark {
     pname = "spark";
-    version = "3.5.5";
-    hash = "sha256-vzcWgIfHPhN3nyrxdk3f0p4fW3MpQ+FuEPnWPw0xNPg=";
+    version = "3.5.7";
+    hash = "sha256-JLgczDT1AUUgtRBgDEshK6PTtbCR4iY+yD44kleWEkk=";
   };
   spark_3_4 = spark {
     pname = "spark";
