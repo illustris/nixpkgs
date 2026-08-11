@@ -1,11 +1,16 @@
 {
   lib,
   nixosTests,
+  bash-completion,
+  bashNonInteractive,
   cloud-utils,
   dmidecode,
   fetchFromGitHub,
   iproute2,
+  meson,
+  ninja,
   openssh,
+  pkg-config,
   python3,
   shadow,
   systemd,
@@ -17,8 +22,10 @@
 
 python3.pkgs.buildPythonApplication (finalAttrs: {
   pname = "cloud-init";
-  version = "25.2";
-  pyproject = true;
+  version = "26.2";
+  # cloud-init switched from setuptools to meson (PEP 632), so we drive
+  # the meson build/install ourselves.
+  format = "other";
 
   namePrefix = "";
 
@@ -26,7 +33,7 @@ python3.pkgs.buildPythonApplication (finalAttrs: {
     owner = "canonical";
     repo = "cloud-init";
     tag = finalAttrs.version;
-    hash = "sha256-Ww76dhfoGrIbxPiXHxDjpgPsinmfrs42NnGmzhBeGC0=";
+    hash = "sha256-OFgn1zOoWivNB5JPszFjhSzmILDRJ9aR9A9y81oBwMk=";
   };
 
   patches = [
@@ -35,37 +42,76 @@ python3.pkgs.buildPythonApplication (finalAttrs: {
   ];
 
   prePatch = ''
-    substituteInPlace setup.py \
-      --replace /lib/systemd $out/lib/systemd
+    substituteInPlace tools/render-template \
+      --replace-fail "#!/usr/bin/env python3" "#!${python3.interpreter}"
 
     substituteInPlace cloudinit/net/networkd.py \
-      --replace '["/usr/sbin", "/bin"]' '["/usr/sbin", "/bin", "${iproute2}/bin", "${systemd}/bin"]'
+      --replace-fail '["/usr/sbin", "/bin"]' '["/usr/sbin", "/bin", "${iproute2}/bin", "${systemd}/bin"]'
 
     substituteInPlace tests/unittests/test_net_activators.py \
-      --replace '["/usr/sbin", "/bin"]' \
+      --replace-fail '["/usr/sbin", "/bin"]' \
         '["/usr/sbin", "/bin", "${iproute2}/bin", "${systemd}/bin"]'
 
-    substituteInPlace tests/unittests/cmd/test_clean.py \
-      --replace "/bin/bash" "/bin/sh"
+    # cc_install_hotplug writes a udev rule invoking /usr/libexec/cloud-init/hook-hotplug,
+    # which does not exist on NixOS; the test asserts the same literal path
+    substituteInPlace cloudinit/config/cc_install_hotplug.py tests/unittests/config/test_cc_install_hotplug.py \
+      --replace-fail "/usr/libexec/cloud-init" "$out/libexec/cloud-init"
   '';
+
+  nativeBuildInputs = [
+    meson
+    ninja
+    # resolves the systemd, udev and bash-completion install dirs below
+    pkg-config
+  ];
+
+  buildInputs = [
+    # provides a store-path sh for patchShebangs of the installed scripts
+    # (strictDeps: shebang interpreters are only looked up in buildInputs)
+    bashNonInteractive
+    # .pc files consulted by meson for install dirs; the dirs themselves are
+    # redirected into $out via the PKG_CONFIG_* overrides in env
+    bash-completion
+    systemd
+  ];
+
+  mesonFlags = [
+    # python.install_env=prefix installs modules into
+    # $out/lib/python3.x/site-packages (the default "auto" scheme would use
+    # the build python's own prefix instead)
+    "-Dpython.install_env=prefix"
+    # the default prefix-relative "etc" works for regular install rules, but
+    # upstream's clean.d install script mkdirs ${DESTDIR}/$sysconfdir verbatim;
+    # an absolute path keeps it inside $out
+    "--sysconfdir=${placeholder "out"}/etc"
+  ];
+
+  env = {
+    # upstream reads these install dirs from systemd.pc/udev.pc/bash-completion.pc,
+    # which point at those packages' own prefixes
+    PKG_CONFIG_SYSTEMD_SYSTEMDSYSTEMUNITDIR = "${placeholder "out"}/lib/systemd/system";
+    PKG_CONFIG_SYSTEMD_SYSTEMDSYSTEMGENERATORDIR = "${placeholder "out"}/lib/systemd/system-generators";
+    PKG_CONFIG_UDEV_UDEVDIR = "${placeholder "out"}/lib/udev";
+    PKG_CONFIG_BASH_COMPLETION_COMPLETIONSDIR = "${placeholder "out"}/share/bash-completion/completions";
+  };
 
   postInstall = ''
-    install -D -m755 ./tools/write-ssh-key-fingerprints $out/libexec/write-ssh-key-fingerprints
-    for i in $out/libexec/*; do
+    for i in $out/libexec/cloud-init/*; do
       wrapProgram $i --prefix PATH : "${lib.makeBinPath [ openssh ]}"
     done
-  '';
 
-  build-system = with python3.pkgs; [
-    setuptools
-  ];
+    # tools/render-template autodetects the build machine's distro variant,
+    # which resolves to the ubuntu fallback inside the sandbox; the nixos
+    # distro class comes from 0001-add-nixos-support.patch
+    substituteInPlace $out/etc/cloud/cloud.cfg \
+      --replace-fail "distro: ubuntu" "distro: nixos"
+  '';
 
   propagatedBuildInputs = with python3.pkgs; [
     configobj
     jinja2
     jsonpatch
     jsonschema
-    netifaces
     oauthlib
     pyserial
     pyyaml
@@ -74,7 +120,7 @@ python3.pkgs.buildPythonApplication (finalAttrs: {
 
   nativeCheckInputs = with python3.pkgs; [
     pytest7CheckHook
-    httpretty
+    pyfakefs
     dmidecode
     # needed for tests; at runtime we rather want the setuid wrapper
     passlib
@@ -90,42 +136,40 @@ python3.pkgs.buildPythonApplication (finalAttrs: {
       lib.makeBinPath [
         dmidecode
         cloud-utils.guest
-        busybox
       ]
-    }/bin"
+    }"
+    # busybox supplies tools nothing else on the PATH provides (udhcpc, the
+    # nixos distro class's first-choice DHCP client), but its limited applets
+    # (blkid, ip, ...) must never shadow the full implementations: suffix it
+    "--suffix PATH : ${lib.makeBinPath [ busybox ]}"
   ];
 
   disabledTests = [
     # tries to create /var
-    "test_dhclient_run_with_tmpdir"
     "test_dhcp_client_failover"
     # clears path and fails because mkdir is not found
     "test_path_env_gets_set_from_main"
     # tries to read from /etc/ca-certificates.conf while inside the sandbox
-    "test_handler_ca_certs"
     "TestRemoveDefaultCaCerts"
     # Doesn't work in the sandbox
     "TestEphemeralDhcpNoNetworkSetup"
-    "TestHasURLConnectivity"
     "TestReadFileOrUrl"
     "TestConsumeUserDataHttp"
     # Chef Omnibus
     "TestInstallChefOmnibus"
     # Disable failing VMware and PuppetAio tests
-    "test_get_data_iso9660_with_network_config"
     "test_get_data_vmware_guestinfo_with_network_config"
-    "test_get_host_info"
     "test_no_data_access_method"
-    "test_install_with_collection"
-    "test_install_with_custom_url"
-    "test_install_with_default_arguments"
-    "test_install_with_no_cleanup"
-    "test_install_with_version"
+    # needs to chmod the setuid bit, not permitted as sandbox user
+    "test_special_permission_bits"
     # https://github.com/canonical/cloud-init/issues/5002
     "test_found_via_userdata"
   ];
 
   preCheck = ''
+    # pytestCheckPhase runs with cwd inside the meson build dir; go back to
+    # the source root so pytest resolves tox.ini testpaths (tools tests/unittests)
+    cd ..
     # TestTempUtils.test_mkdtemp_default_non_root does not like TMPDIR=/build
     export TMPDIR=/tmp
   '';
