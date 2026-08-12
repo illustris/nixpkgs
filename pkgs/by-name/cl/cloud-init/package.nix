@@ -181,7 +181,13 @@ python3.pkgs.buildPythonApplication (finalAttrs: {
   ];
 
   passthru = {
-    tests = { inherit (nixosTests) cloud-init cloud-init-hostname; };
+    tests = {
+      inherit (nixosTests)
+        cloud-init
+        cloud-init-dhcp
+        cloud-init-hostname
+        ;
+    };
     updateScript = gitUpdater { ignoredVersions = ".ubuntu.*"; };
   };
 
