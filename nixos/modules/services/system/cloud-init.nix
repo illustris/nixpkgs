@@ -15,7 +15,7 @@ let
       openssh
       shadow
       util-linux
-      busybox
+      dhcpcd
     ]
     ++ lib.optional cfg.btrfs.enable btrfs-progs
     ++ lib.optional cfg.ext4.enable e2fsprogs

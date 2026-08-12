@@ -15,8 +15,8 @@
   shadow,
   systemd,
   coreutils,
+  dhcpcd,
   gitUpdater,
-  busybox,
   procps,
 }:
 
@@ -56,6 +56,11 @@ python3.pkgs.buildPythonApplication (finalAttrs: {
     # which does not exist on NixOS; the test asserts the same literal path
     substituteInPlace cloudinit/config/cc_install_hotplug.py tests/unittests/config/test_cc_install_hotplug.py \
       --replace-fail "/usr/libexec/cloud-init" "$out/libexec/cloud-init"
+
+    # dhcpcd's hooks are disabled by pointing --script at /bin/true, which does
+    # not exist on NixOS; the tests assert the same literal command line
+    substituteInPlace cloudinit/net/dhcp.py tests/unittests/net/test_dhcp.py \
+      --replace-fail '"--script=/bin/true"' '"--script=${coreutils}/bin/true"'
   '';
 
   nativeBuildInputs = [
@@ -136,12 +141,9 @@ python3.pkgs.buildPythonApplication (finalAttrs: {
       lib.makeBinPath [
         dmidecode
         cloud-utils.guest
+        dhcpcd
       ]
     }"
-    # busybox supplies tools nothing else on the PATH provides (udhcpc, the
-    # nixos distro class's first-choice DHCP client), but its limited applets
-    # (blkid, ip, ...) must never shadow the full implementations: suffix it
-    "--suffix PATH : ${lib.makeBinPath [ busybox ]}"
   ];
 
   disabledTests = [
